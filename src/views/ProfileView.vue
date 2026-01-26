@@ -51,6 +51,9 @@
 
     <div class="card">
       <div class="section-title">Account</div>
+      <button class="btn-secondary full" @click="router.push('/admin/support')" style="margin-bottom: 8px;">
+        💬 Support Dashboard
+      </button>
       <button class="danger full" @click="logout">
         Logout & Switch Account
       </button>

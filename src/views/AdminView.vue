@@ -3,7 +3,10 @@
     <div class="top">
       <button class="icon-btn" @click="router.back()">←</button>
       <div class="top-title">Admin</div>
-      <button class="icon-btn" @click="refresh">↻</button>
+      <div class="top-actions">
+        <button class="icon-btn" @click="router.push('/admin/support')">💬</button>
+        <button class="icon-btn" @click="refresh">↻</button>
+      </div>
     </div>
 
     <div class="card">
@@ -85,8 +88,9 @@ function refresh(){
 
 <style scoped>
 .wrap{ display:flex; flex-direction: column; gap: 14px; }
-.top{ display:grid; grid-template-columns: 40px 1fr 40px; align-items:center; gap: 10px; }
+.top{ display:grid; grid-template-columns: 40px 1fr 80px; align-items:center; gap: 10px; }
 .top-title{ text-align:center; font-weight: 900; }
+.top-actions{ display:flex; gap: 4px; }
 .icon-btn{
   width: 40px; height: 40px; border-radius: 14px;
   border: 1px solid var(--crave-border); background:#fff; font-weight: 900;

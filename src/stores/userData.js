@@ -4,12 +4,14 @@ import { loadJSON, saveJSON } from '../utils/persist'
 const PAYMENT_KEY = 'crave_payment_v1'
 const ADDRESS_KEY = 'crave_addresses_v1'
 const SUPPORT_KEY = 'crave_support_v1'
+const VIOLATIONS_KEY = 'crave_violations_v1'
 
 export const useUserDataStore = defineStore('userData', {
   state: () => ({
     paymentMethods: loadJSON(PAYMENT_KEY, []),
     savedAddresses: loadJSON(ADDRESS_KEY, []),
     supportChats: loadJSON(SUPPORT_KEY, []),
+    violations: loadJSON(VIOLATIONS_KEY, []),
   }),
 
   getters: {
@@ -28,6 +30,7 @@ export const useUserDataStore = defineStore('userData', {
       saveJSON(PAYMENT_KEY, this.paymentMethods)
       saveJSON(ADDRESS_KEY, this.savedAddresses)
       saveJSON(SUPPORT_KEY, this.supportChats)
+      saveJSON(VIOLATIONS_KEY, this.violations)
     },
 
     // Payment Methods
@@ -151,6 +154,43 @@ export const useUserDataStore = defineStore('userData', {
       const chat = this.supportChats.find(c => c.id === chatId)
       if (chat) {
         chat.status = 'closed'
+        this._persist()
+      }
+    },
+
+    // Violations & Suspensions
+    reportViolation(violation) {
+      const v = {
+        id: 'viol_' + Date.now(),
+        type: violation.type,
+        targetType: violation.targetType, // 'store' or 'rider'
+        targetName: violation.targetName,
+        targetId: violation.targetId,
+        reason: violation.reason,
+        description: violation.description,
+        reportedBy: violation.reportedBy,
+        orderId: violation.orderId,
+        status: 'pending', // pending, suspended, dismissed
+        createdAt: new Date().toISOString(),
+      }
+
+      this.violations.unshift(v)
+      this._persist()
+      return v.id
+    },
+
+    suspendEntity(violationId) {
+      const violation = this.violations.find(v => v.id === violationId)
+      if (violation) {
+        violation.status = 'suspended'
+        this._persist()
+      }
+    },
+
+    dismissViolation(violationId) {
+      const violation = this.violations.find(v => v.id === violationId)
+      if (violation) {
+        violation.status = 'dismissed'
         this._persist()
       }
     },

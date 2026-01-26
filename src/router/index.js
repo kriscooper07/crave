@@ -17,6 +17,7 @@ import PartnerApplyView from '../views/PartnerApplyView.vue'
 import PartnerDashboardView from '../views/PartnerDashboardView.vue'
 import AdminView from '../views/AdminView.vue'
 import StoreView from '../views/StoreView.vue'
+import AdminSupportView from '../views/AdminSupportView.vue'
 
 
 
@@ -38,6 +39,7 @@ const routes = [
   { path: '/partner/dashboard', name: 'PartnerDashboard', component: PartnerDashboardView, meta: { hideNav: true } },
   { path: '/store/:id', name: 'Store', component: StoreView, meta: { requiresAuth: true } },
   { path: '/admin', name: 'Admin', component: AdminView, meta: { hideNav: true } },
+  { path: '/admin/support', name: 'AdminSupport', component: AdminSupportView, meta: { hideNav: true } },
   { path: '/:pathMatch(.*)*', name: 'NotFound', redirect: '/' },
 ]
 
