@@ -28,7 +28,8 @@
       </div>
       <div>
         <div class="name">{{ auth.currentUser?.name || 'Guest' }}</div>
-        <div class="meta">{{ auth.currentUser?.phone || 'Not logged in' }}</div>
+        <div class="meta">{{ auth.currentUser?.phone || auth.currentUser?.email || 'Not logged in' }}</div>
+        <div v-if="auth.currentUser?.location" class="meta location">📍 {{ auth.currentUser.location }}</div>
       </div>
     </div>
 
@@ -41,6 +42,9 @@
 
       <div class="label" style="margin-top:12px;">Phone</div>
       <input class="input" v-model="form.phone" placeholder="09xx xxx xxxx" disabled />
+
+      <div class="label" style="margin-top:12px;">Location</div>
+      <input class="input" v-model="form.location" placeholder="Your location" />
 
       <button class="btn-primary full" @click="save">
         Save Profile
@@ -335,6 +339,7 @@ const form = reactive({
   name: auth.currentUser?.name || '',
   email: auth.currentUser?.email || '',
   phone: auth.currentUser?.phone || '',
+  location: auth.currentUser?.location || '',
 })
 
 const addressForm = reactive({
@@ -394,7 +399,8 @@ function handlePhotoUpload(event) {
 function save(){
   auth.updateProfile({
     name: form.name,
-    email: form.email
+    email: form.email,
+    location: form.location
   })
   saved.value = true
   setTimeout(() => (saved.value = false), 1200)
@@ -619,6 +625,7 @@ function logout(){
 }
 .name{ font-weight: 900; font-size: 16px; }
 .meta{ margin-top: 4px; color: var(--crave-muted); font-weight: 800; font-size: 12px; }
+.location{ color: var(--crave-blue); font-weight: 900; }
 
 .label{ color: var(--crave-muted); font-weight: 900; font-size: 12px; margin-bottom: 6px; }
 .btn-primary.full{ width: 100%; margin-top: 12px; }

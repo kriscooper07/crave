@@ -7,12 +7,33 @@
     </div>
 
     <div class="card hero">
+      <div class="logo-container">
+        <img src="/src/assets/crave-logo.svg" alt="CRAVE" class="logo" />
+      </div>
       <div class="big">🔐</div>
       <div class="title">Welcome Back</div>
-      <div class="sub">Enter your phone number to continue</div>
+      <div class="sub">Enter your phone number or email to continue</div>
+
+      <!-- Auth Method Toggle -->
+      <div class="auth-toggle">
+        <button
+          @click="authMethod = 'phone'"
+          :class="{ active: authMethod === 'phone' }"
+          class="toggle-btn"
+        >
+          📱 Phone
+        </button>
+        <button
+          @click="authMethod = 'email'"
+          :class="{ active: authMethod === 'email' }"
+          class="toggle-btn"
+        >
+          ✉️ Email
+        </button>
+      </div>
 
       <!-- Phone Input Step -->
-      <div v-if="!otpSent" class="form">
+      <div v-if="!otpSent && authMethod === 'phone'" class="form">
         <div class="input-group">
           <label class="label">Phone Number</label>
           <input
@@ -29,11 +50,51 @@
         </button>
       </div>
 
+      <!-- Email Input Step -->
+      <div v-if="!otpSent && authMethod === 'email'" class="form">
+        <div class="input-group">
+          <label class="label">Email Address</label>
+          <input
+            v-model="email"
+            class="input"
+            type="email"
+            placeholder="Enter your email address"
+            @keyup.enter="sendEmailOTP"
+          />
+        </div>
+
+        <div class="input-group">
+          <label class="label">Full Name</label>
+          <input
+            v-model="name"
+            class="input"
+            type="text"
+            placeholder="Enter your full name"
+          />
+        </div>
+
+        <div class="input-group">
+          <label class="label">Location</label>
+          <input
+            v-model="location"
+            class="input"
+            type="text"
+            placeholder="Enter your location"
+          />
+        </div>
+
+        <button class="btn-primary full" @click="sendEmailOTP" :disabled="!email || !name || !location || loading">
+          {{ loading ? 'Sending...' : 'Send OTP to Email' }}
+        </button>
+      </div>
+
       <!-- OTP Input Step -->
       <div v-else class="form">
         <div class="otp-info">
-          <div class="muted">OTP sent to {{ phone }}</div>
-          <button class="link" @click="otpSent = false">Change number</button>
+          <div class="muted">
+            OTP sent to {{ authMethod === 'phone' ? phone : email }}
+          </div>
+          <button class="link" @click="otpSent = false">Change {{ authMethod === 'phone' ? 'number' : 'email' }}</button>
         </div>
 
         <div class="input-group">
@@ -73,6 +134,10 @@ const router = useRouter()
 const auth = useAuthStore()
 
 const phone = ref('')
+const email = ref('')
+const name = ref('')
+const location = ref('')
+const authMethod = ref('phone') // 'phone' or 'email'
 const otp = ref('')
 const otpSent = ref(false)
 const loading = ref(false)
@@ -111,6 +176,29 @@ async function sendOTP() {
   loading.value = false
 }
 
+async function sendEmailOTP() {
+  if (!email.value || !name.value || !location.value) return
+
+  loading.value = true
+  error.value = ''
+  message.value = ''
+
+  try {
+    const result = await auth.sendEmailOTP(email.value, name.value, location.value)
+    if (result.success) {
+      otpSent.value = true
+      message.value = result.message
+      startResendTimer()
+    } else {
+      error.value = result.message
+    }
+  } catch (err) {
+    error.value = 'Failed to send OTP. Please try again.'
+  }
+
+  loading.value = false
+}
+
 async function verifyOTP() {
   if (!otp.value) return
 
@@ -119,7 +207,13 @@ async function verifyOTP() {
   message.value = ''
 
   try {
-    const result = await auth.verifyOTP(phone.value, otp.value)
+    let result
+    if (authMethod.value === 'phone') {
+      result = await auth.verifyOTP(phone.value, otp.value)
+    } else {
+      result = await auth.verifyEmailOTP(email.value, otp.value, name.value, location.value)
+    }
+
     if (result.success) {
       message.value = result.message
       // Redirect after successful login
@@ -137,7 +231,11 @@ async function verifyOTP() {
 }
 
 async function resendOTP() {
-  await sendOTP()
+  if (authMethod.value === 'phone') {
+    await sendOTP()
+  } else {
+    await sendEmailOTP()
+  }
 }
 
 function startResendTimer() {
@@ -181,9 +279,37 @@ function startResendTimer() {
   background: linear-gradient(180deg, var(--crave-blue-2), #fff);
   padding: 24px;
 }
+.logo-container{
+  margin-bottom: 16px;
+}
+.logo{
+  height: 40px;
+  width: auto;
+}
 .big{ font-size: 48px; margin-bottom: 16px; }
 .title{ font-weight: 900; font-size: 24px; margin-bottom: 8px; }
 .sub{ color: var(--crave-muted); font-weight: 700; margin-bottom: 24px; }
+
+.auth-toggle{
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  justify-content: center;
+}
+.toggle-btn{
+  padding: 8px 16px;
+  border: 1px solid var(--crave-border);
+  border-radius: 20px;
+  background: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.toggle-btn.active{
+  background: var(--crave-blue);
+  color: white;
+  border-color: var(--crave-blue);
+}
 
 .form{ display:flex; flex-direction: column; gap: 16px; }
 

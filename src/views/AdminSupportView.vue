@@ -76,19 +76,17 @@
         <div class="lookup-form">
           <input
             v-model="orderSearch"
-            type="text"
-            placeholder="Enter order number (e.g., ORD_001)"
+            @keyup.enter="lookupOrder"
+            placeholder="Enter Order ID (e.g., ORD_001)"
             class="input"
           />
-          <button @click="lookupOrder" class="btn-primary">
-            Search
-          </button>
+          <button @click="lookupOrder" class="btn-primary">Search</button>
         </div>
 
         <div v-if="searchedOrder" class="order-details">
           <div class="order-card">
             <div class="order-header">
-              <h3>Order {{ searchedOrder.id }}</h3>
+              <h3>{{ searchedOrder.id }}</h3>
               <div class="order-status" :class="searchedOrder.status">
                 {{ searchedOrder.status }}
               </div>
@@ -109,7 +107,7 @@
               </div>
               <div class="info-row">
                 <span class="label">Total:</span>
-                <span class="value">₱{{ searchedOrder.total.toFixed(2) }}</span>
+                <span class="value">₱{{ searchedOrder.total }}</span>
               </div>
               <div class="info-row">
                 <span class="label">Date:</span>
@@ -118,16 +116,19 @@
             </div>
 
             <div class="order-items">
-              <h4>Items:</h4>
-              <div v-for="item in searchedOrder.items" :key="item.id" class="order-item">
-                <span>{{ item.name }}</span>
-                <span>×{{ item.quantity }}</span>
-                <span>₱{{ item.price.toFixed(2) }}</span>
+              <h4>Items</h4>
+              <div
+                v-for="item in searchedOrder.items"
+                :key="item.id"
+                class="order-item"
+              >
+                <span>{{ item.name }} x{{ item.quantity }}</span>
+                <span>₱{{ item.price * item.quantity }}</span>
               </div>
             </div>
 
             <div class="order-actions">
-              <button @click="viewOrderChat(searchedOrder.id)" class="btn-secondary">
+              <button @click="viewOrderChat(searchedOrder.id)" class="btn-primary">
                 View Related Chats
               </button>
               <button @click="reportViolation(searchedOrder)" class="btn-danger">
@@ -137,15 +138,15 @@
           </div>
         </div>
 
-        <div v-else-if="orderSearch && !searchedOrder" class="no-results">
+        <div v-else-if="orderSearch && !searchedOrder" class="empty-state">
           <div class="empty-icon">🔍</div>
           <div class="empty-title">Order not found</div>
-          <div class="empty-subtitle">Check the order number and try again</div>
+          <div class="empty-subtitle">Check the Order ID and try again</div>
         </div>
       </div>
     </div>
 
-    <!-- Violations & Suspensions Tab -->
+    <!-- Violations Tab -->
     <div v-if="activeTab === 'violations'" class="tab-content">
       <div class="section-header">
         <h2>Violations & Suspensions</h2>
@@ -337,7 +338,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserDataStore } from '../stores/userData'
 import { useAuthStore } from '../stores/auth'
@@ -536,6 +537,10 @@ function viewViolationChat(violation) {
     alert('No related chats found for this violation')
   }
 }
+
+onMounted(() => {
+  // Component initialized
+})
 </script>
 
 <style scoped>
@@ -1004,79 +1009,76 @@ function viewViolationChat(violation) {
   gap: 12px;
 }
 
-/* Form Styles */
-.form-group {
-  margin-bottom: 16px;
-}
-
-.form-group label {
-  display: block;
-  color: var(--crave-muted);
-  font-weight: 900;
-  font-size: 12px;
-  margin-bottom: 6px;
-}
-
-/* Empty States */
 .empty-state {
   text-align: center;
   padding: 40px 20px;
-  color: var(--crave-muted);
 }
 
 .empty-icon {
   font-size: 48px;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .empty-title {
-  font-weight: 900;
   font-size: 18px;
+  font-weight: 900;
   margin-bottom: 8px;
 }
 
 .empty-subtitle {
+  color: var(--crave-muted);
   font-size: 14px;
 }
 
-.no-results {
-  text-align: center;
-  padding: 40px 20px;
-  color: var(--crave-muted);
+.input {
+  padding: 12px 16px;
+  border: 1px solid var(--crave-border);
+  border-radius: 12px;
+  font-size: 16px;
+  width: 100%;
 }
 
-/* Button Styles */
 .btn-primary {
-  border: none;
+  padding: 12px 16px;
   background: var(--crave-blue);
   color: white;
-  padding: 12px 16px;
+  border: none;
   border-radius: 12px;
   font-weight: 900;
   cursor: pointer;
 }
 
 .btn-secondary {
-  border: 1px solid var(--crave-border);
-  background: #fff;
-  color: var(--crave-text);
   padding: 12px 16px;
+  background: #f5f5f5;
+  color: var(--crave-text);
+  border: 1px solid var(--crave-border);
   border-radius: 12px;
   font-weight: 900;
   cursor: pointer;
 }
 
 .btn-danger {
-  border: 1px solid #ef4444;
-  background: #fef2f2;
-  color: #ef4444;
   padding: 12px 16px;
+  background: #dc3545;
+  color: white;
+  border: none;
   border-radius: 12px;
   font-weight: 900;
   cursor: pointer;
 }
 
-.btn-primary.full {
+.full {
   width: 100%;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 8px;
 }
 </style>
