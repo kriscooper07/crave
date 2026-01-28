@@ -18,6 +18,7 @@ import PartnerDashboardView from '../views/PartnerDashboardView.vue'
 import AdminView from '../views/AdminView.vue'
 import StoreView from '../views/StoreView.vue'
 import AdminSupportView from '../views/AdminSupportView.vue'
+import SupportAgentLoginView from '../views/SupportAgentLoginView.vue'
 
 
 
@@ -39,7 +40,11 @@ const routes = [
   { path: '/partner/dashboard', name: 'PartnerDashboard', component: PartnerDashboardView, meta: { hideNav: true } },
   { path: '/store/:id', name: 'Store', component: StoreView, meta: { requiresAuth: true } },
   { path: '/admin', name: 'Admin', component: AdminView, meta: { hideNav: true } },
-  { path: '/admin/support', name: 'AdminSupport', component: AdminSupportView, meta: { hideNav: true } },
+
+  // Support Agent Routes
+  { path: '/support/login', name: 'SupportAgentLogin', component: SupportAgentLoginView, meta: { hideNav: true } },
+  { path: '/support/dashboard', name: 'SupportAgentDashboard', component: AdminSupportView, meta: { hideNav: true, agentOnly: true } },
+
   { path: '/:pathMatch(.*)*', name: 'NotFound', redirect: '/' },
 ]
 
@@ -53,12 +58,31 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const auth = useAuthStore()
 
+  // Support agent routes
+  if (to.meta.agentOnly) {
+    if (!auth.isAuthenticated || auth.currentUser?.role !== 'support_agent') {
+      next('/support/login')
+    } else {
+      next()
+    }
+    return
+  }
+
+  // Consumer routes - block support agents from accessing consumer app
+  if (to.meta.requiresAuth && auth.isAuthenticated && auth.currentUser?.role === 'support_agent') {
+    next('/support/dashboard')
+    return
+  }
+
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     // Redirect to login if trying to access protected route without auth
     next('/login')
-  } else if (to.path === '/login' && auth.isAuthenticated) {
-    // Redirect to home if trying to access login while already authenticated
+  } else if (to.path === '/login' && auth.isAuthenticated && auth.currentUser?.role !== 'support_agent') {
+    // Redirect to home if trying to access login while already authenticated as consumer
     next('/home')
+  } else if (to.path === '/support/login' && auth.isAuthenticated && auth.currentUser?.role === 'support_agent') {
+    // Redirect to support dashboard if trying to access agent login while already authenticated as agent
+    next('/support/dashboard')
   } else {
     next()
   }

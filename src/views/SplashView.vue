@@ -11,6 +11,7 @@
     <div class="footer">
       <button class="btn-primary" @click="goNext">Get Started</button>
       <div class="hint">Light blue • White • Black/Gray accents</div>
+      <button class="agent-link" @click="goToAgentLogin">Support Agent Login</button>
     </div>
   </div>
 </template>
@@ -29,6 +30,10 @@ function goNext(){
   } else {
     router.push('/login')
   }
+}
+
+function goToAgentLogin(){
+  router.push('/support/login')
 }
 </script>
 
@@ -86,5 +91,21 @@ function goNext(){
   color: var(--crave-muted);
   font-size: 12px;
   font-weight: 700;
+}
+
+.agent-link{
+  background: transparent;
+  color: var(--crave-blue);
+  border: 1px solid var(--crave-blue);
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.agent-link:hover{
+  background: var(--crave-blue);
+  color: white;
 }
 </style>

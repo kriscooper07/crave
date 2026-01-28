@@ -3,6 +3,7 @@ import { loadJSON, saveJSON } from '../utils/persist'
 
 const AUTH_KEY = 'crave_auth_v1'
 const USERS_KEY = 'crave_users_v1'
+const AGENTS_KEY = 'crave_support_agents_v1'
 
 // Mock OTP storage (in real app, this would be server-side)
 const OTP_STORAGE = {}
@@ -13,6 +14,14 @@ function generateOTP() {
 
 function loadUsers() {
   return loadJSON(USERS_KEY, {})
+}
+
+function loadAgents() {
+  return loadJSON(AGENTS_KEY, {})
+}
+
+function saveAgents(agents) {
+  saveJSON(AGENTS_KEY, agents)
 }
 
 function saveUsers(users) {
@@ -154,6 +163,40 @@ export const useAuthStore = defineStore('auth', {
       return { success: true, message: 'Login successful', user }
     },
 
+    // Login support agent
+    async loginSupportAgent(agentId, password) {
+      const agents = loadAgents()
+
+      // Mock agent credentials for demo
+      const mockAgents = {
+        'agent_001': { password: 'password123', name: 'Sarah Johnson', role: 'support_agent' },
+        'agent_002': { password: 'password123', name: 'Mike Chen', role: 'support_agent' },
+        'agent_003': { password: 'password123', name: 'Emma Davis', role: 'support_agent' }
+      }
+
+      const agentData = mockAgents[agentId]
+      if (!agentData || agentData.password !== password) {
+        return { success: false, message: 'Invalid agent ID or password' }
+      }
+
+      // Create agent user object
+      const agent = {
+        id: agentId,
+        agentId,
+        name: agentData.name,
+        role: 'support_agent',
+        email: `${agentId}@crave.support`,
+        createdAt: new Date().toISOString(),
+      }
+
+      // Set as current user
+      this.user = agent
+      this.isAuthenticated = true
+      this._persist()
+
+      return { success: true, message: 'Agent login successful', user: agent }
+    },
+
     // Logout
     logout() {
       this.user = null
@@ -172,6 +215,12 @@ export const useAuthStore = defineStore('auth', {
       const users = loadUsers()
       users[this.user.phone] = this.user
       saveUsers(users)
+    },
+
+    // Return all registered consumer users as an array
+    getAllUsers() {
+      const users = loadUsers()
+      return Object.values(users || {})
     },
   }
 })

@@ -120,6 +120,9 @@
 
       <div v-if="error" class="error">{{ error }}</div>
       <div v-if="message" class="success">{{ message }}</div>
+      <div style="margin-top:12px;">
+        <button class="agent-link" @click="router.push('/support/login')">Support Agent Login</button>
+      </div>
     </div>
   </div>
 </template>
@@ -281,10 +284,13 @@ function startResendTimer() {
 }
 .logo-container{
   margin-bottom: 16px;
+  display: flex;
+  justify-content: center;
 }
 .logo{
-  height: 40px;
-  width: auto;
+  height: 80px;
+  width: 80px;
+  border-radius: 50%;
 }
 .big{ font-size: 48px; margin-bottom: 16px; }
 .title{ font-weight: 900; font-size: 24px; margin-bottom: 8px; }
@@ -384,5 +390,21 @@ function startResendTimer() {
   font-weight: 700;
   font-size: 14px;
   margin-top: 8px;
+}
+
+.agent-link{
+  background: transparent;
+  color: var(--crave-blue);
+  border: 1px solid var(--crave-blue);
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.agent-link:hover{
+  background: var(--crave-blue);
+  color: white;
 }
 </style>

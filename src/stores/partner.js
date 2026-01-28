@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { loadJSON, saveJSON } from '../utils/persist'
+import { riders as mockRiders } from '../data/mock'
 
 const KEY = 'crave_partner_v1'
 
@@ -8,11 +9,27 @@ function uid(prefix='id') {
 }
 
 export const usePartnerStore = defineStore('partner', {
-  state: () => loadJSON(KEY, {
-    applications: [], // { id, ownerKey, ownerName, ownerPhone, ownerEmail, storeName, storeCategory, storeAddress, storePhone, status, createdAt }
-    stores: [],       // { id, ownerKey, name, category, address, phone, status, createdAt }
-    products: [],     // { id, storeId, name, price, category, image, isAvailable, createdAt }
-  }),
+  state: () => {
+    const data = loadJSON(KEY, {
+      applications: [], // { id, ownerKey, ownerName, ownerPhone, ownerEmail, storeName, storeCategory, storeAddress, storePhone, status, createdAt }
+      stores: [],       // { id, ownerKey, name, category, address, phone, status, createdAt }
+      products: [],     // { id, storeId, name, price, category, image, isAvailable, createdAt }
+      riders: [],       // { id, name, phone, email, vehicle, status, location, createdAt }
+    })
+    
+    // Ensure data has all required properties (in case of corrupted localStorage)
+    if (!data.applications) data.applications = []
+    if (!data.stores) data.stores = []
+    if (!data.products) data.products = []
+    if (!data.riders) data.riders = []
+    
+    // Initialize with mock riders if empty
+    if (data.riders.length === 0) {
+      data.riders = mockRiders.map(r => ({ ...r, createdAt: new Date().toISOString() }))
+    }
+    
+    return data
+  },
 
   getters: {
     allApplications: (s) =>
@@ -31,6 +48,9 @@ export const usePartnerStore = defineStore('partner', {
 
     activeStores: (s) =>
       s.stores.filter(store => store.status === 'Active'),
+
+    activeRiders: (s) =>
+      s.riders.filter(rider => rider.status === 'Active'),
 
     availableProducts: (s) =>
       s.products
@@ -51,6 +71,7 @@ export const usePartnerStore = defineStore('partner', {
         applications: this.applications,
         stores: this.stores,
         products: this.products,
+        riders: this.riders,
       })
     },
 
@@ -147,6 +168,31 @@ export const usePartnerStore = defineStore('partner', {
     removeProduct(productId) {
       this.products = this.products.filter(p => p.id !== productId)
       this._persist()
+    },
+
+    // Rider management
+    addRider(rider) {
+      const r = {
+        id: uid('rider'),
+        name: rider.name,
+        phone: rider.phone,
+        email: rider.email,
+        vehicle: rider.vehicle,
+        status: rider.status || 'Active',
+        location: rider.location || 'Unknown',
+        createdAt: new Date().toISOString(),
+      }
+      this.riders.push(r)
+      this._persist()
+      return r.id
+    },
+
+    setRiderStatus(riderId, status) {
+      const r = this.riders.find(x => x.id === riderId)
+      if (r) {
+        r.status = status
+        this._persist()
+      }
     }
   }
 })

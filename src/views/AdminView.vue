@@ -4,7 +4,6 @@
       <button class="icon-btn" @click="router.back()">←</button>
       <div class="top-title">Admin</div>
       <div class="top-actions">
-        <button class="icon-btn" @click="router.push('/admin/support')">💬</button>
         <button class="icon-btn" @click="refresh">↻</button>
       </div>
     </div>
